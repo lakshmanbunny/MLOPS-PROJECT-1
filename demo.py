@@ -22,7 +22,12 @@
 
 # --------------------------------------------------------------------------------
 
-# from src.pipline.training_pipeline import TrainPipeline
+from dotenv import load_dotenv
+import os
+from src.pipline.training_pipeline import TrainPipeline
 
-# pipline = TrainPipeline()
-# pipline.run_pipeline()
+# Load environment variables from src/.env (if present)
+load_dotenv(dotenv_path=os.path.join(os.getcwd(), "src", ".env"))
+
+pipline = TrainPipeline()
+pipline.run_pipeline()

@@ -9,6 +9,7 @@ pymongo
 from_root
 dill
 certifi
+python-dotenv
 PyYAML
 boto3
 mypy-boto3-s3

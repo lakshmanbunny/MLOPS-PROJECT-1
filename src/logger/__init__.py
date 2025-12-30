@@ -29,7 +29,18 @@ def configure_logger():
     # File handler with rotation
     file_handler = RotatingFileHandler(log_file_path, maxBytes=MAX_LOG_SIZE, backupCount=BACKUP_COUNT)
     file_handler.setFormatter(formatter)
-    file_handler.setLevel(logging.DEBUG)
+    # Only store INFO+ messages in the log file to keep logs concise
+    file_handler.setLevel(logging.INFO)
+    
+    # Filter: only include records from this project (root or `src` package)
+    class AppFilter(logging.Filter):
+        def filter(self, record):
+            return record.name == 'root' or record.name.startswith('src')
+    file_handler.addFilter(AppFilter())
+
+    # Reduce verbosity from common third-party libraries to avoid noisy logs
+    for noisy in ['pymongo', 'urllib3', 'boto3', 'botocore']:
+        logging.getLogger(noisy).setLevel(logging.WARNING)
     
     # Console handler
     console_handler = logging.StreamHandler()
