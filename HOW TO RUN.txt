@@ -1,0 +1,5 @@
+1.make sure to activate conda env 
+--->conda activate mlops-proj-1
+--->then run the files using python filename.py from the terminal
+
+2.use the code in demo.py to demonstrate the logging and exception handling using dummy code
