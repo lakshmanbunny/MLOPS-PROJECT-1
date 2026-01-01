@@ -103,11 +103,14 @@ class SimpleStorageService:
         logging.info("Entered the get_file_object method of SimpleStorageService class")
         try:
             bucket = self.get_bucket(bucket_name)
-            file_objects = [file_object for file_object in bucket.objects.filter(Prefix=filename)]
-            func = lambda x: x[0] if len(x) == 1 else x
-            file_objs = func(file_objects)
+            file_objects = [obj for obj in bucket.objects.filter(Prefix=filename)]
+
+            if not file_objects:
+                raise FileNotFoundError(f"No object found in S3 for key: {filename}")
+
             logging.info("Exited the get_file_object method of SimpleStorageService class")
-            return file_objs
+            return file_objects[0]   # ✅ ALWAYS return single object
+
         except Exception as e:
             raise MyException(e, sys) from e
 
