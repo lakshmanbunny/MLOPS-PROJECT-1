@@ -30,9 +30,9 @@ jobs:
           ECR_REPOSITORY: ${{ secrets.ECR_REPO }}
           IMAGE_TAG: latest
         run: |
-          docker build --no-cache -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .  
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-          echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+          docker build --no-cache -t $ECR_REGISTRY/$ECR_REPOSITORY:latest .  
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+          echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:latest"
 
   Continuous-Deployment:
     needs: Continuous-Integration
@@ -57,6 +57,9 @@ jobs:
           docker stop mlops-app || true
           docker rm mlops-app || true
 
+          # Pull latest image (ensure CD uses freshly pushed image)
+          docker pull "${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPO }}:latest" || true
+
           docker run -d \
             --name mlops-app \
             --restart unless-stopped \
@@ -73,6 +76,6 @@ jobs:
           sleep 5
           SKVER=$(docker exec mlops-app python -c "import sklearn; print(sklearn.__version__)")
           echo "Container sklearn version: $SKVER"
-          if [ "$SKVER" != "1.6.0" ]; then
-            echo "sklearn version mismatch (expected 1.6.0)"; docker logs mlops-app | tail -n 200; exit 1
+          if [ "$SKVER" != "1.8.0" ]; then
+            echo "sklearn version mismatch (expected 1.8.0)"; docker logs mlops-app | tail -n 200; exit 1
           fi
