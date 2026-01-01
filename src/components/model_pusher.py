@@ -71,7 +71,7 @@ class ModelPusher:
 
                 # Upload cloudpickle model and metadata
                 self.proj1_estimator.save_model(from_file=temp_cloud_file)
-                self.s3.upload_file(from_file=meta_file,
+                self.s3.upload_file(from_filename=meta_file,
                                     to_filename=self.model_pusher_config.s3_model_key_path + '.meta.json',
                                     bucket_name=self.model_pusher_config.bucket_name,
                                     remove=True)

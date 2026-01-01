@@ -1,23 +1,44 @@
-ipykernel
-pandas
+# Core
 numpy
+pandas
+scipy
+
+# Visualization (optional for training)
 matplotlib
-plotly
 seaborn
-scikit-learn==1.6.0
-pymongo
-from_root
+plotly
+
+# ML stack (LOCKED)
+scikit-learn==1.8.0
+imbalanced-learn==0.14.1
+mlflow==3.8.1
+
+# Serialization
+cloudpickle
 dill
+
+# Backend / API
+fastapi
+uvicorn
+python-multipart
+jinja2
+
+# Database
+pymongo
 certifi
+
+# AWS
+boto3
+botocore
+mypy-boto3-s3
+
+# Utilities
 python-dotenv
 PyYAML
-boto3
-mypy-boto3-s3
-botocore
-fastapi
-python-multipart
-uvicorn
-jinja2
-imblearn
-cloudpickle
+from_root
+
+# Dev / notebooks
+ipykernel
+
+# Local package
 -e .
