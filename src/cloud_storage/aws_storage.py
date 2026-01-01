@@ -127,7 +127,41 @@ class SimpleStorageService:
             model_file = model_dir + "/" + model_name if model_dir else model_name
             file_object = self.get_file_object(model_file, bucket_name)
             model_obj = self.read_object(file_object, decode=False)
-            model = pickle.loads(model_obj)
+            # Log runtime sklearn version (helpful to diagnose mismatch issues)
+            try:
+                import sklearn
+                logging.info(f"Runtime sklearn version: {sklearn.__version__}")
+            except Exception:
+                logging.info("Could not determine runtime sklearn version")
+
+            # Compatibility shim: some sklearn versions use a private class
+            # '_RemainderColsList' inside sklearn.compose._column_transformer which
+            # can break unpickling when sklearn versions differ between
+            # training and production. Try to ensure the attribute exists so
+            # older/newer pickles can be loaded.
+            try:
+                import sklearn.compose._column_transformer as _ct
+                if not hasattr(_ct, "_RemainderColsList"):
+                    from collections import UserList
+                    class _RemainderColsList(UserList):
+                        pass
+                    _ct._RemainderColsList = _RemainderColsList
+                    logging.info("Applied sklearn _RemainderColsList compatibility shim.")
+            except Exception:
+                logging.info("Could not apply sklearn compatibility shim; proceeding to load and let errors surface if any.")
+
+            # Try the normal pickle loader first then fallback to cloudpickle if needed
+            try:
+                model = pickle.loads(model_obj)
+            except Exception as e_pickle:
+                logging.info("pickle.loads failed, attempting cloudpickle.loads as fallback")
+                try:
+                    import cloudpickle
+                    model = cloudpickle.loads(model_obj)
+                except Exception as e_cloud:
+                    logging.error("Failed to load model with pickle and cloudpickle", exc_info=True)
+                    raise MyException(e_cloud, sys) from e_cloud
+
             logging.info("Production model loaded from S3 bucket.")
             return model
         except Exception as e:
