@@ -10,7 +10,19 @@ VEHICLE INSURANCE DATA PIPELINE - MLOPS 1ST PROJECT
 - The app logs the runtime `scikit-learn` version when loading a model to help diagnose mismatches.
 - `requirements.txt` now includes `cloudpickle` — ensure CI installs dependencies before running the app.
 
-Recommended permanent fix: pin `scikit-learn` in `requirements.txt` to the version used for training (e.g., `scikit-learn==1.4.x` or whichever your training environment used) and re-run model pusher to upload a cloudpickle model and metadata.
+Recommended permanent fix: pin `scikit-learn` in `requirements.txt` to the exact version used for training (e.g., `scikit-learn==1.6.0`) and re-run model pusher to upload a cloudpickle model and metadata.
+
+**Critical deployment steps**:
+
+- Ensure `requirements.txt` contains at least:
+  - `scikit-learn==1.6.0`
+  - `numpy`
+  - `pandas`
+- Force Docker to rebuild without cache in CI: use `docker build --no-cache` so the new sklearn is installed and cached layers are not reused.
+- After deployment, verify runtime sklearn inside the container:
+  - `docker exec -it mlops-app python -c "import sklearn; print(sklearn.__version__)"` (should be `1.6.0`)
+
+Note: Rebuilding with `--no-cache` is mandatory to avoid Docker reusing an old layer that contains a different `sklearn` version.
 
 Quick verification steps:
 

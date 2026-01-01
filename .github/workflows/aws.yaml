@@ -30,7 +30,7 @@ jobs:
           ECR_REPOSITORY: ${{ secrets.ECR_REPO }}
           IMAGE_TAG: latest
         run: |
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .  
+          docker build --no-cache -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .  
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
           echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
 
@@ -66,3 +66,13 @@ jobs:
             -e MONGODB_URL="${{ secrets.MONGODB_URL }}" \
             -p 5000:5000 \
             "${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPO }}:latest"
+
+      - name: Verify sklearn version in container
+        run: |
+          echo "Waiting for container to start..."
+          sleep 5
+          SKVER=$(docker exec mlops-app python -c "import sklearn; print(sklearn.__version__)")
+          echo "Container sklearn version: $SKVER"
+          if [ "$SKVER" != "1.6.0" ]; then
+            echo "sklearn version mismatch (expected 1.6.0)"; docker logs mlops-app | tail -n 200; exit 1
+          fi
